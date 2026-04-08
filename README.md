@@ -1,5 +1,7 @@
 # mempalace plugin for Claude Code
 
+![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsadwx%2Fmempalace-plugin%2Fmaster%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version)
+
 Zero-effort setup and integration of [mempalace](https://github.com/milla-jovovich/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
 
 ## What it does
