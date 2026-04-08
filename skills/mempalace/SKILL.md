@@ -102,10 +102,12 @@ Idempotent — safe to run even if already mined.
 mempalace status
 ```
 
+Read the plugin version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (the `version` field).
+
 Print a single summary:
 
 ```
-Mempalace setup complete:
+Mempalace plugin v<version> — setup complete:
 - Palace: initialized at <path>
 - Wing: wing_<project_name> (keywords: ...)
 - Identity: <first line>

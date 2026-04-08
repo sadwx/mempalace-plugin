@@ -4,12 +4,17 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Ensure mempalace is installed
+# Prefer uv — it handles dependency provisioning automatically
+if command -v uv &>/dev/null; then
+  exec uv run --with mempalace python -m mempalace.mcp_server "$@"
+fi
+
+# Fallback: ensure mempalace is installed, then use system python
 bash "$SCRIPT_DIR/ensure-installed.sh" 2>/dev/null
 
 PYTHON_CMD=$(bash "$SCRIPT_DIR/resolve-python.sh" 2>/dev/null)
 if [ -z "$PYTHON_CMD" ]; then
-  echo "ERROR: No Python found. Cannot start mempalace MCP server." >&2
+  echo "ERROR: No Python found. Install uv (recommended) or Python 3.9+." >&2
   exit 1
 fi
 
