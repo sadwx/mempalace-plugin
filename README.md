@@ -21,7 +21,7 @@ Zero-effort setup and integration of [mempalace](https://github.com/milla-jovovi
 
 ```bash
 # Add this repo as a marketplace
-claude plugin marketplace add https://github.com/YOUR_USERNAME/mempalace-plugin
+claude plugin marketplace add https://github.com/sadwx/mempalace-plugin
 
 # Install globally
 claude plugin install mempalace@mempalace-plugin --scope user
