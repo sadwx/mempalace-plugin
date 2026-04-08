@@ -3,6 +3,13 @@
 # Fires every ~15 messages to capture topics, decisions, and code changes.
 # Silent no-op if mempalace is not installed.
 
-command -v mempalace &>/dev/null || exit 0
+MEMPALACE_CMD=""
+if command -v mempalace &>/dev/null; then
+  MEMPALACE_CMD="mempalace"
+elif [ -x "$HOME/.mempalace/.venv/bin/mempalace" ]; then
+  MEMPALACE_CMD="$HOME/.mempalace/.venv/bin/mempalace"
+else
+  exit 0
+fi
 
-mempalace mine --mode convos --extract general "$(pwd)" 2>/dev/null || true
+$MEMPALACE_CMD mine --mode convos --extract general "$(pwd)" 2>/dev/null || true
