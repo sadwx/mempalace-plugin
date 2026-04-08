@@ -1,0 +1,34 @@
+name: Bump patch version
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    # Skip if the last commit was already a version bump (prevent infinite loop)
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump version to')"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump version in plugin.json
+        run: |
+          FILE=".claude-plugin/plugin.json"
+          CURRENT=$(jq -r .version "$FILE")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          NEW="$MAJOR.$MINOR.$((PATCH + 1))"
+          jq --arg v "$NEW" '.version = $v' "$FILE" > tmp.json && mv tmp.json "$FILE"
+          echo "BUMPED=$CURRENT -> $NEW" >> "$GITHUB_ENV"
+          echo "NEW_VERSION=$NEW" >> "$GITHUB_ENV"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json
+          git commit -m "chore: bump version to v$NEW_VERSION"
+          git push
