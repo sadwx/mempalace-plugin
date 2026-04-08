@@ -1,0 +1,13 @@
+{
+  "name": "mempalace-plugin",
+  "owner": {
+    "name": "Simon.Lin"
+  },
+  "plugins": [
+    {
+      "name": "mempalace",
+      "source": ".",
+      "description": "Zero-effort setup and integration of mempalace — a local AI memory system — into Claude Code."
+    }
+  ]
+}
