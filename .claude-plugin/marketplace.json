@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "mempalace",
-      "source": ".",
+      "source": "./",
       "description": "Zero-effort setup and integration of mempalace — a local AI memory system — into Claude Code."
     }
   ]
