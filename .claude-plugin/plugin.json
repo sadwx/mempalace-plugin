@@ -1,6 +1,6 @@
 {
   "name": "mempalace",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Zero-effort setup and integration of mempalace — a local AI memory system — into any Claude Code project. Auto-registers MCP server, configures save hooks, and provides /mempalace for project initialization.",
   "author": {
     "name": "Simon.Lin"
