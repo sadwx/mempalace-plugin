@@ -31,12 +31,18 @@ claude plugin install mempalace@mempalace-plugin --scope user
 
 Then restart Claude Code or run `/reload-plugins`.
 
-## Prerequisites
+## Requirements
 
-- Python 3.9+ (via `python3`, `python`, or `uv`)
-- Claude Code
+- **Python 3.10+ on `PATH` as `python`** (not only `python3` or `py`).
+  - **Windows:** install from [python.org](https://www.python.org/downloads/) or the Microsoft Store — both register `python` on `PATH` by default.
+  - **macOS:** `brew install python` registers `python`.
+  - **Debian / Ubuntu:** `sudo apt install python-is-python3` if `python` is missing.
+- **Either `uv` (recommended) or the `mempalace` package** importable from that Python.
+  - With `uv`: zero-install startup — the MCP launcher runs `uv run --with mempalace …` and uv handles provisioning.
+  - Without `uv`: run `pip install mempalace` once; the launcher uses that install directly.
+- **Claude Code.**
 
-mempalace itself is installed automatically on first use.
+> **No `bash` required.** The plugin no longer shells out through `bash`, so Windows users don't need Git Bash or WSL. This sidesteps a Windows `CreateProcess` issue where `C:\Windows\System32\bash.exe` (the WSL launcher) is resolved before Git Bash on `PATH` and fails on Windows-style script paths.
 
 ## Usage
 
@@ -65,11 +71,9 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 |-----------|------|---------|
 | MCP | `.mcp.json` | Auto-registers mempalace MCP server |
 | Skill | `skills/mempalace/SKILL.md` | `/mempalace` setup command |
-| Hook | `hooks/scripts/mempal_save_hook.sh` | Auto-save on Stop |
-| Hook | `hooks/scripts/mempal_precompact_hook.sh` | Emergency save on PreCompact |
-| Script | `scripts/resolve-python.sh` | Find best Python runtime |
-| Script | `scripts/ensure-installed.sh` | Install mempalace if missing |
-| Script | `scripts/run-mcp-server.sh` | Start MCP server with resolved Python |
+| Hook | `hooks/scripts/mempal_save_hook.py` | Auto-save on Stop |
+| Hook | `hooks/scripts/mempal_precompact_hook.py` | Emergency save on PreCompact |
+| Script | `scripts/run-mcp-server.py` | Start MCP server (prefers `uv`, falls back to installed package) |
 
 ## License
 

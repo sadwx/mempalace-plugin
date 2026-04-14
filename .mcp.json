@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "mempalace": {
-      "command": "bash",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/run-mcp-server.sh"]
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/run-mcp-server.py"]
     }
   }
 }
