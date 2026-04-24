@@ -7,9 +7,10 @@ Zero-effort setup and integration of [mempalace](https://github.com/milla-jovovi
 ## What it does
 
 **On install (automatic):**
-- MCP server auto-registers, exposing 19 mempalace tools (search, add/delete drawers, knowledge graph, agent diary)
-- Stop hook auto-saves conversation context every ~15 messages
-- PreCompact hook emergency-saves before context window compression
+- MCP server auto-registers, exposing the mempalace MCP toolset (search, add/delete drawers, knowledge graph, agent diary)
+- SessionStart hook injects `mempalace wake-up` as session context so the model begins each session with palace memory
+- Stop hook auto-saves conversation context every ~15 messages (delegates to upstream's first-class `mempalace hook run` so infinite-loop guards and throttling stay in sync with the library)
+- PreCompact hook synchronously mines the session transcript before context compression so nothing is lost
 
 **On `/mempalace` (per-project):**
 - Installs mempalace package if needed (detects uv/python3/python)
@@ -71,9 +72,14 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 |-----------|------|---------|
 | MCP | `.mcp.json` | Auto-registers mempalace MCP server |
 | Skill | `skills/mempalace/SKILL.md` | `/mempalace` setup command |
-| Hook | `hooks/scripts/mempal_save_hook.py` | Auto-save on Stop |
-| Hook | `hooks/scripts/mempal_precompact_hook.py` | Emergency save on PreCompact |
+| Hook | `hooks/scripts/mempal_session_start_hook.py` | Inject `mempalace wake-up` as SessionStart context |
+| Hook | `hooks/scripts/mempal_save_hook.py` | Auto-save on Stop (delegates to `mempalace hook run --hook stop`) |
+| Hook | `hooks/scripts/mempal_precompact_hook.py` | Sync-mine transcript on PreCompact (delegates to `mempalace hook run --hook precompact`) |
 | Script | `scripts/run-mcp-server.py` | Start MCP server (prefers `uv`, falls back to installed package) |
+
+### SessionStart wake-up scoping
+
+By default the SessionStart hook runs `mempalace wake-up` (general context). Set `MEMPALACE_WAKE_UP_WING=<wing>` to scope wake-up to a specific project wing.
 
 ## License
 
