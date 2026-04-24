@@ -13,18 +13,20 @@ The plugin already handles MCP server registration and hook scripts automaticall
 
 ## Pre-flight
 
-Before starting, ensure mempalace is installed:
+Verify the mempalace CLI is on `PATH`:
 
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-installed.sh
-```
-
-If this fails, tell the user to install manually (`pip install mempalace` or `uv pip install mempalace`) and stop.
-
-Verify:
 ```bash
 mempalace --version
 ```
+
+If it's missing, install it once and re-check:
+
+```bash
+uv pip install mempalace || pip install --user mempalace
+mempalace --version
+```
+
+If both installs fail, stop and tell the user to install manually.
 
 ## Automated Setup
 
