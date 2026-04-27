@@ -41,6 +41,7 @@ Then restart Claude Code or run `/reload-plugins`.
 - **Either `uv` (recommended) or the `mempalace` package** importable from that Python.
   - With `uv`: zero-install startup — the MCP launcher runs `uv run --with mempalace …` and uv handles provisioning.
   - Without `uv`: run `pip install mempalace` once; the launcher uses that install directly.
+  - **Supported `mempalace` version: `>=3.3.3`** ([CHANGELOG](https://github.com/MemPalace/mempalace/blob/main/CHANGELOG.md)). The Stop / PreCompact / SessionStart hooks delegate to upstream's `mempalace hook run` runner, first introduced in 3.3.0 and fixed for cross-platform plugin-dir layouts in 3.3.3 ([#942](https://github.com/MemPalace/mempalace/pull/942)). On older versions the hooks become silent no-ops.
 - **Claude Code.**
 
 > **No `bash` required.** The plugin no longer shells out through `bash`, so Windows users don't need Git Bash or WSL. This sidesteps a Windows `CreateProcess` issue where `C:\Windows\System32\bash.exe` (the WSL launcher) is resolved before Git Bash on `PATH` and fails on Windows-style script paths.
