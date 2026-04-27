@@ -9,8 +9,9 @@ guards against infinite save loops via ``stop_hook_active`` and spawns
 auto-ingest in the background when ``MEMPAL_DIR`` is set.
 
 Silent no-op if the mempalace CLI cannot be located (neither on PATH nor
-in the dedicated venv at ``~/.mempalace/.venv``). Never raises — hook
-failures must not block Claude Code.
+in the dedicated venv at ``~/.mempalace-plugin/.venv``, or its legacy
+location at ``~/.mempalace/.venv`` from plugin <1.0.8). Never raises —
+hook failures must not block Claude Code.
 """
 from __future__ import annotations
 
@@ -21,19 +22,19 @@ import sys
 from pathlib import Path
 
 _IS_WIN = os.name == "nt"
-_VENV_CMD = (
-    Path.home() / ".mempalace" / ".venv"
-    / ("Scripts" if _IS_WIN else "bin")
-    / ("mempalace.exe" if _IS_WIN else "mempalace")
-)
+_BIN = "Scripts" if _IS_WIN else "bin"
+_EXE = "mempalace.exe" if _IS_WIN else "mempalace"
+_VENV_CMD = Path.home() / ".mempalace-plugin" / ".venv" / _BIN / _EXE
+_LEGACY_VENV_CMD = Path.home() / ".mempalace" / ".venv" / _BIN / _EXE
 
 
 def _resolve_mempalace() -> str | None:
     path_cmd = shutil.which("mempalace")
     if path_cmd:
         return path_cmd
-    if _VENV_CMD.exists():
-        return str(_VENV_CMD)
+    for candidate in (_VENV_CMD, _LEGACY_VENV_CMD):
+        if candidate.exists():
+            return str(candidate)
     return None
 
 

@@ -128,6 +128,7 @@ After setup, mempalace works automatically via MCP tools in Claude sessions. For
 | `mempalace search "query" --wing name` | Search within a specific wing |
 | `mempalace mine <path>` | Ingest code/docs |
 | `mempalace mine <path> --mode convos` | Ingest conversation exports |
+| `mempalace sweep <path>` | Idempotent safety-net miner — catches anything `mine` missed (mempalace ≥3.3.2) |
 | `mempalace wake-up` | ~170 tokens of critical context for session start |
 | `mempalace status` | Palace overview |
 

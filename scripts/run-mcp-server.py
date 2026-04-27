@@ -4,11 +4,17 @@
 Resolution order (first that works wins):
   1. ``uv run --with mempalace`` — zero-install, preferred when uv is on PATH.
   2. The current Python (``sys.executable``) if ``mempalace`` is importable.
-  3. A pre-existing dedicated venv at ``~/.mempalace/.venv`` if it has mempalace.
+  3. A pre-existing dedicated venv at ``~/.mempalace-plugin/.venv`` (or the
+     legacy ``~/.mempalace/.venv`` path used by plugin <1.0.8) if it has
+     mempalace.
   4. First-run install, tried in order until one succeeds:
        a. ``pip install --user mempalace`` against the current Python.
-       b. Create ``~/.mempalace/.venv`` and ``pip install mempalace`` into it —
-          this handles PEP 668 / externally-managed Pythons (e.g. Homebrew 3.12+).
+       b. Create ``~/.mempalace-plugin/.venv`` and ``pip install mempalace``
+          into it — this handles PEP 668 / externally-managed Pythons
+          (e.g. Homebrew 3.12+). Note: kept under our own
+          ``~/.mempalace-plugin/`` dir, NOT ``~/.mempalace/``, to avoid
+          mingling plugin internals with upstream's user data
+          (``config.json``, ``identity.txt``, ``hook_state/`` etc.).
   5. Loud stderr error with install instructions.
 
 Stdout is reserved for MCP JSON-RPC. All diagnostics go to stderr only.
@@ -21,7 +27,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-VENV_DIR = Path.home() / ".mempalace" / ".venv"
+VENV_DIR = Path.home() / ".mempalace-plugin" / ".venv"
+# Legacy path used by plugin <1.0.8. Read-only fallback for already-installed
+# users so we don't force a re-install on upgrade.
+LEGACY_VENV_DIR = Path.home() / ".mempalace" / ".venv"
 _IS_WIN = os.name == "nt"
 _BIN = "Scripts" if _IS_WIN else "bin"
 _EXE = ".exe" if _IS_WIN else ""
@@ -110,10 +119,11 @@ def main() -> int:
     if _has_module(sys.executable, "mempalace"):
         return _run([sys.executable, "-m", "mempalace.mcp_server", *forwarded])
 
-    if _venv_has_mempalace(VENV_DIR):
-        return _run(
-            [str(_venv_python(VENV_DIR)), "-m", "mempalace.mcp_server", *forwarded]
-        )
+    for venv in (VENV_DIR, LEGACY_VENV_DIR):
+        if _venv_has_mempalace(venv):
+            return _run(
+                [str(_venv_python(venv)), "-m", "mempalace.mcp_server", *forwarded]
+            )
 
     sys.stderr.write(
         "mempalace: first-run install (this may take a minute)...\n"

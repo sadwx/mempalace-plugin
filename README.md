@@ -2,7 +2,7 @@
 
 ![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsadwx%2Fmempalace-plugin%2Fmaster%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version)
 
-Zero-effort setup and integration of [mempalace](https://github.com/milla-jovovich/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
+Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
 
 ## What it does
 
@@ -34,7 +34,7 @@ Then restart Claude Code or run `/reload-plugins`.
 
 ## Requirements
 
-- **Python 3.10+ on `PATH` as `python`** (not only `python3` or `py`).
+- **Python 3.9+ on `PATH` as `python`** (not only `python3` or `py`). 3.9 is the floor inherited from upstream `mempalace`'s `requires-python`.
   - **Windows:** install from [python.org](https://www.python.org/downloads/) or the Microsoft Store — both register `python` on `PATH` by default.
   - **macOS:** `brew install python` registers `python`.
   - **Debian / Ubuntu:** `sudo apt install python-is-python3` if `python` is missing.
@@ -64,6 +64,7 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 | `mempalace search "query" --wing name` | Search within a specific wing |
 | `mempalace mine <path>` | Ingest code/docs |
 | `mempalace mine <path> --mode convos` | Ingest conversation exports |
+| `mempalace sweep <path>` | Idempotent safety-net miner — catches anything `mine` missed (mempalace ≥3.3.2) |
 | `mempalace wake-up` | ~170 tokens of critical context for session start |
 | `mempalace status` | Palace overview |
 
