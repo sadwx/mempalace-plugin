@@ -38,6 +38,18 @@ _PROJECTS = Path.home() / ".claude" / "projects"
 _LOG = _MEMPAL_DIR / "claude_imports.log"
 
 
+def _uv_with_specs() -> list[str]:
+    """uv ``--with`` args, widened to pull a network backend's client when one is
+    selected via ``MEMPALACE_BACKEND`` (pgvector ships an extra; qdrant does not).
+    """
+    backend = os.environ.get("MEMPALACE_BACKEND", "").strip().lower()
+    if backend == "pgvector":
+        return ["--with", "mempalace[pgvector]"]
+    if backend == "qdrant":
+        return ["--with", "mempalace", "--with", "qdrant-client"]
+    return ["--with", "mempalace"]
+
+
 def _resolve_mempalace_argv() -> list[str] | None:
     path_cmd = shutil.which("mempalace")
     if path_cmd:
@@ -45,7 +57,7 @@ def _resolve_mempalace_argv() -> list[str] | None:
     if _VENV_CMD.exists():
         return [str(_VENV_CMD)]
     if shutil.which("uv"):
-        return ["uv", "run", "--with", "mempalace", "mempalace"]
+        return ["uv", "run", *_uv_with_specs(), "mempalace"]
     return None
 
 
