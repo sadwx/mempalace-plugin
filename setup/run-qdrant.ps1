@@ -21,6 +21,20 @@ param(
   [switch]$Recreate
 )
 
+$ProgressPreference = 'SilentlyContinue'  # avoids slow Invoke-WebRequest progress UI (fallback only)
+
+# Readiness probe: prefer real curl.exe (fast, clean exit code); fall back to
+# Invoke-WebRequest. Note: in Windows PowerShell 'curl' is an ALIAS for
+# Invoke-WebRequest, so we call curl.exe explicitly to get the real binary.
+function Test-Url([string]$u) {
+  if (Get-Command curl.exe -ErrorAction SilentlyContinue) {
+    & curl.exe -sf --max-time 3 $u *> $null
+    return ($LASTEXITCODE -eq 0)
+  }
+  try { return ((Invoke-WebRequest -UseBasicParsing $u -TimeoutSec 3).StatusCode -eq 200) }
+  catch { return $false }
+}
+
 # --- ensure the podman machine (rootless podman on Windows runs in a VM) ---
 $machines = (& podman machine list -q 2>$null)
 if (-not $machines) {
@@ -57,11 +71,9 @@ if ($exists) {
 $url = "http://localhost:$RestPort"
 Write-Host "Waiting for Qdrant at $url ..."
 $ready = $false
-for ($i = 0; $i -lt 30; $i++) {
-  try {
-    $r = Invoke-WebRequest -UseBasicParsing "$url/readyz" -TimeoutSec 2
-    if ($r.StatusCode -eq 200) { $ready = $true; break }
-  } catch { Start-Sleep -Seconds 1 }
+for ($i = 0; $i -lt 40; $i++) {
+  if (Test-Url "$url/readyz") { $ready = $true; break }
+  Start-Sleep -Milliseconds 750
 }
 
 if ($ready) {
