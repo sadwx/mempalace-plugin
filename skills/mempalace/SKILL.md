@@ -7,26 +7,44 @@ argument-hint: "[project-path]"
 
 # MemPalace Setup
 
-Fully automated setup of [mempalace](https://github.com/milla-jovovich/mempalace) — a local AI memory system (ChromaDB + SQLite). This skill runs end-to-end with zero user interaction. Execute every step, report what you did at the end.
+Fully automated setup of [mempalace](https://github.com/MemPalace/mempalace) — a local AI memory system (ChromaDB + SQLite). This skill runs end-to-end with zero user interaction. Execute every step, report what you did at the end.
 
 The plugin already handles MCP server registration and hook scripts automatically. This skill handles project-specific initialization: palace init, wing config, identity, and initial mining.
 
-## Pre-flight
+## Pre-flight: resolve the `mempalace` command
 
-Verify the mempalace CLI is on `PATH`:
+This skill drives the `mempalace` CLI. Resolve ONE working invocation now and reuse
+it — written as `<MP>` in every step below. No `bash` or shell-specific syntax is
+needed; this works on Windows, macOS, and Linux. Try in order and stop at the first
+that runs `--version` successfully:
 
-```bash
-mempalace --version
+1. **`uv` on `PATH`** (check `uv --version`) — preferred, zero-install:
+   `<MP>` = `uv run --with mempalace mempalace`
+2. **`mempalace` on `PATH`** (check `mempalace --version`):
+   `<MP>` = `mempalace`
+3. **The plugin's private venv.** When `uv` is absent, the plugin's MCP launcher
+   auto-installs mempalace here — it is NOT on `PATH`, so check the file directly:
+   - macOS / Linux: `<MP>` = `~/.mempalace/.venv/bin/mempalace`
+   - Windows: `<MP>` = `%USERPROFILE%\.mempalace\.venv\Scripts\mempalace.exe`
+4. **Not found anywhere** — install once, then use the result. **`uv` is the most
+   reliable installer on every OS** — a single static binary with no Python
+   prerequisites — so prefer it:
+   - Install `uv` (https://docs.astral.sh/uv/), then use option 1.
+   - If you genuinely cannot use `uv`, install into the plugin's venv. Note this
+     needs `venv` + `ensurepip` in your Python (missing on some distros — e.g.
+     Debian/Ubuntu need `sudo apt install python3-venv`; it also sidesteps PEP 668,
+     which blocks a plain `pip install`):
+     - macOS / Linux: `python3 -m venv ~/.mempalace/.venv && ~/.mempalace/.venv/bin/pip install mempalace`
+     - Windows: `python -m venv %USERPROFILE%\.mempalace\.venv` then `%USERPROFILE%\.mempalace\.venv\Scripts\pip.exe install mempalace`
+     - then `<MP>` = the venv `mempalace` from option 3.
+   - If neither works, tell the user to install `uv` (recommended) or `mempalace`
+     manually, then stop — do not guess further.
+
+Confirm the resolved command runs before continuing (substitute your `<MP>`):
+
 ```
-
-If it's missing, install it once and re-check:
-
-```bash
-uv pip install mempalace || pip install --user mempalace
-mempalace --version
+<MP> --version
 ```
-
-If both installs fail, stop and tell the user to install manually.
 
 ## Automated Setup
 
@@ -44,17 +62,19 @@ Gather info automatically — no user input needed:
 
 ### Step 2: Initialize palace
 
-```bash
-mempalace init "$(pwd)"
+```
+<MP> init . --yes
 ```
 
-If palace already exists, skip — verify with `mempalace status`.
+`.` is the current directory (portable across Windows, macOS, and Linux); `--yes`
+auto-accepts detected entities so setup stays non-interactive. If the palace
+already exists, skip — verify with `<MP> status`.
 
 ### Step 3: Configure wings
 
 Check where the wing config lives:
-```bash
-mempalace status
+```
+<MP> status
 ```
 
 Write/merge wing config (typically `~/.mempalace/wings.json` or inside the palace directory):
@@ -92,16 +112,16 @@ If identity.txt already exists, skip.
 
 Seed the palace with current project context:
 
-```bash
-mempalace mine "$(pwd)"
+```
+<MP> mine .
 ```
 
 Idempotent — safe to run even if already mined.
 
 ### Step 6: Verify and report
 
-```bash
-mempalace status
+```
+<MP> status
 ```
 
 Read the plugin version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (the `version` field).
@@ -128,7 +148,7 @@ After setup, mempalace works automatically via MCP tools in Claude sessions. For
 | `mempalace search "query" --wing name` | Search within a specific wing |
 | `mempalace mine <path>` | Ingest code/docs |
 | `mempalace mine <path> --mode convos` | Ingest conversation exports |
-| `mempalace wake-up` | ~170 tokens of critical context for session start |
+| `mempalace wake-up` | ~600–900 tokens of wake-up context (L0 + L1) for session start |
 | `mempalace status` | Palace overview |
 
 ## Adding to another project
