@@ -7,24 +7,33 @@ argument-hint: "[project-path]"
 
 # MemPalace Setup
 
-Fully automated setup of [mempalace](https://github.com/milla-jovovich/mempalace) — a local AI memory system (ChromaDB + SQLite). This skill runs end-to-end with zero user interaction. Execute every step, report what you did at the end.
+Fully automated setup of [mempalace](https://github.com/MemPalace/mempalace) — a local AI memory system (ChromaDB + SQLite). This skill runs end-to-end with zero user interaction. Execute every step, report what you did at the end.
 
 The plugin already handles MCP server registration and hook scripts automatically. This skill handles project-specific initialization: palace init, wing config, identity, and initial mining.
 
 ## Pre-flight
 
-Before starting, ensure mempalace is installed:
+This skill drives the `mempalace` CLI. Pick a portable invocation that works on
+Windows, macOS, and Linux — no `bash` or shell-specific syntax required:
 
-```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-installed.sh
+- **If `uv` is available** (check `uv --version`), prefix every `mempalace` command
+  with `uv run --with mempalace`. uv provisions mempalace automatically on first
+  use, so a fresh machine needs no manual install. The command blocks below use
+  this form.
+- **If `uv` is not available but `mempalace` is already on `PATH`** (check
+  `mempalace --version`), drop the `uv run --with mempalace` prefix and call
+  `mempalace …` directly.
+- **If neither works**, install once with `uv tool install mempalace` (or
+  `pip install mempalace`), then retry. If it still fails, tell the user and stop.
+
+Confirm the CLI runs before continuing:
+
+```
+uv run --with mempalace mempalace --version
 ```
 
-If this fails, tell the user to install manually (`pip install mempalace` or `uv pip install mempalace`) and stop.
-
-Verify:
-```bash
-mempalace --version
-```
+> The plugin's MCP server auto-installs mempalace on first launch, so this
+> pre-flight usually just confirms the CLI is reachable for the steps below.
 
 ## Automated Setup
 
@@ -42,17 +51,19 @@ Gather info automatically — no user input needed:
 
 ### Step 2: Initialize palace
 
-```bash
-mempalace init "$(pwd)"
+```
+uv run --with mempalace mempalace init . --yes
 ```
 
-If palace already exists, skip — verify with `mempalace status`.
+`.` is the current directory (portable across Windows, macOS, and Linux); `--yes`
+auto-accepts detected entities so setup stays non-interactive. If the palace
+already exists, skip — verify with `mempalace status`.
 
 ### Step 3: Configure wings
 
 Check where the wing config lives:
-```bash
-mempalace status
+```
+uv run --with mempalace mempalace status
 ```
 
 Write/merge wing config (typically `~/.mempalace/wings.json` or inside the palace directory):
@@ -90,16 +101,16 @@ If identity.txt already exists, skip.
 
 Seed the palace with current project context:
 
-```bash
-mempalace mine "$(pwd)"
+```
+uv run --with mempalace mempalace mine .
 ```
 
 Idempotent — safe to run even if already mined.
 
 ### Step 6: Verify and report
 
-```bash
-mempalace status
+```
+uv run --with mempalace mempalace status
 ```
 
 Read the plugin version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (the `version` field).
@@ -126,7 +137,7 @@ After setup, mempalace works automatically via MCP tools in Claude sessions. For
 | `mempalace search "query" --wing name` | Search within a specific wing |
 | `mempalace mine <path>` | Ingest code/docs |
 | `mempalace mine <path> --mode convos` | Ingest conversation exports |
-| `mempalace wake-up` | ~170 tokens of critical context for session start |
+| `mempalace wake-up` | ~600–900 tokens of wake-up context (L0 + L1) for session start |
 | `mempalace status` | Palace overview |
 
 ## Adding to another project

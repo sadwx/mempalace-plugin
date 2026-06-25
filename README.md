@@ -2,12 +2,12 @@
 
 ![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsadwx%2Fmempalace-plugin%2Fmaster%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version)
 
-Zero-effort setup and integration of [mempalace](https://github.com/milla-jovovich/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
+Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
 
 ## What it does
 
 **On install (automatic):**
-- MCP server auto-registers, exposing 19 mempalace tools (search, add/delete drawers, knowledge graph, agent diary)
+- MCP server auto-registers, exposing 35 mempalace tools (search, mining, drawers, knowledge graph, tunnels, agent diary, and more)
 - Stop hook auto-saves conversation context every ~15 messages
 - PreCompact hook emergency-saves before context window compression
 
@@ -33,14 +33,12 @@ Then restart Claude Code or run `/reload-plugins`.
 
 ## Requirements
 
-- **Python 3.10+ on `PATH` as `python`** (not only `python3` or `py`).
-  - **Windows:** install from [python.org](https://www.python.org/downloads/) or the Microsoft Store — both register `python` on `PATH` by default.
-  - **macOS:** `brew install python` registers `python`.
-  - **Debian / Ubuntu:** `sudo apt install python-is-python3` if `python` is missing.
-- **Either `uv` (recommended) or the `mempalace` package** importable from that Python.
-  - With `uv`: zero-install startup — the MCP launcher runs `uv run --with mempalace …` and uv handles provisioning.
-  - Without `uv`: run `pip install mempalace` once; the launcher uses that install directly.
-- **Claude Code.**
+- **`uv` (recommended)** — install from [docs.astral.sh/uv](https://docs.astral.sh/uv/). Zero-install startup: the launcher runs `uv run --with mempalace …` and uv provisions everything, identically on Windows, macOS, and Linux. Nothing else needed.
+- **…or Python 3.10+ on `PATH`** with the `mempalace` package installed (`pip install mempalace`). The launcher detects `python3` first, then `python`, so either name works.
+  - **Windows:** install Python from [python.org](https://www.python.org/downloads/) or the Microsoft Store — or just use `uv`.
+  - **macOS:** `brew install uv` (or `brew install python`).
+  - **Debian / Ubuntu:** `python3` is usually preinstalled; otherwise `sudo apt install python3` — or use `uv`.
+- **Claude Code** (provides the `node` runtime the launcher uses to stay shell-agnostic).
 
 > **No `bash` required.** The plugin no longer shells out through `bash`, so Windows users don't need Git Bash or WSL. This sidesteps a Windows `CreateProcess` issue where `C:\Windows\System32\bash.exe` (the WSL launcher) is resolved before Git Bash on `PATH` and fails on Windows-style script paths.
 
@@ -62,7 +60,7 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 | `mempalace search "query" --wing name` | Search within a specific wing |
 | `mempalace mine <path>` | Ingest code/docs |
 | `mempalace mine <path> --mode convos` | Ingest conversation exports |
-| `mempalace wake-up` | ~170 tokens of critical context for session start |
+| `mempalace wake-up` | ~600–900 tokens of wake-up context (L0 + L1) for session start |
 | `mempalace status` | Palace overview |
 
 ## Components

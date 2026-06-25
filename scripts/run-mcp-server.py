@@ -2,9 +2,16 @@
 """Start the mempalace MCP server with broad environment compatibility.
 
 Resolution order (first that works wins):
-  1. ``uv run --with mempalace`` — zero-install, preferred when uv is on PATH.
+  1. ``uv run --with mempalace mempalace-mcp`` — zero-install, preferred when uv
+     is on PATH. ``mempalace-mcp`` is upstream's canonical console entry point
+     (== ``mempalace.mcp_server:main``); uv resolves it inside its managed env on
+     Windows, macOS, and Linux alike.
   2. The current Python (``sys.executable``) if ``mempalace`` is importable.
   3. A pre-existing dedicated venv at ``~/.mempalace/.venv`` if it has mempalace.
+
+The fallback paths (2-4) launch ``python -m mempalace.mcp_server`` rather than the
+``mempalace-mcp`` script: ``python -m`` needs no PATH/Scripts lookup, so it is the
+most portable form when uv is absent. It targets the same entry point.
   4. First-run install, tried in order until one succeeds:
        a. ``pip install --user mempalace`` against the current Python.
        b. Create ``~/.mempalace/.venv`` and ``pip install mempalace`` into it —
@@ -102,10 +109,9 @@ def main() -> int:
     forwarded = sys.argv[1:]
 
     if shutil.which("uv"):
-        return _run(
-            ["uv", "run", "--with", "mempalace",
-             "python", "-m", "mempalace.mcp_server", *forwarded]
-        )
+        # Canonical upstream entry point; uv resolves the console script inside
+        # its managed env on every platform.
+        return _run(["uv", "run", "--with", "mempalace", "mempalace-mcp", *forwarded])
 
     if _has_module(sys.executable, "mempalace"):
         return _run([sys.executable, "-m", "mempalace.mcp_server", *forwarded])
