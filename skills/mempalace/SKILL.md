@@ -11,29 +11,40 @@ Fully automated setup of [mempalace](https://github.com/MemPalace/mempalace) —
 
 The plugin already handles MCP server registration and hook scripts automatically. This skill handles project-specific initialization: palace init, wing config, identity, and initial mining.
 
-## Pre-flight
+## Pre-flight: resolve the `mempalace` command
 
-This skill drives the `mempalace` CLI. Pick a portable invocation that works on
-Windows, macOS, and Linux — no `bash` or shell-specific syntax required:
+This skill drives the `mempalace` CLI. Resolve ONE working invocation now and reuse
+it — written as `<MP>` in every step below. No `bash` or shell-specific syntax is
+needed; this works on Windows, macOS, and Linux. Try in order and stop at the first
+that runs `--version` successfully:
 
-- **If `uv` is available** (check `uv --version`), prefix every `mempalace` command
-  with `uv run --with mempalace`. uv provisions mempalace automatically on first
-  use, so a fresh machine needs no manual install. The command blocks below use
-  this form.
-- **If `uv` is not available but `mempalace` is already on `PATH`** (check
-  `mempalace --version`), drop the `uv run --with mempalace` prefix and call
-  `mempalace …` directly.
-- **If neither works**, install once with `uv tool install mempalace` (or
-  `pip install mempalace`), then retry. If it still fails, tell the user and stop.
+1. **`uv` on `PATH`** (check `uv --version`) — preferred, zero-install:
+   `<MP>` = `uv run --with mempalace mempalace`
+2. **`mempalace` on `PATH`** (check `mempalace --version`):
+   `<MP>` = `mempalace`
+3. **The plugin's private venv.** When `uv` is absent, the plugin's MCP launcher
+   auto-installs mempalace here — it is NOT on `PATH`, so check the file directly:
+   - macOS / Linux: `<MP>` = `~/.mempalace/.venv/bin/mempalace`
+   - Windows: `<MP>` = `%USERPROFILE%\.mempalace\.venv\Scripts\mempalace.exe`
+4. **Not found anywhere** — install once, then use the result. **`uv` is the most
+   reliable installer on every OS** — a single static binary with no Python
+   prerequisites — so prefer it:
+   - Install `uv` (https://docs.astral.sh/uv/), then use option 1.
+   - If you genuinely cannot use `uv`, install into the plugin's venv. Note this
+     needs `venv` + `ensurepip` in your Python (missing on some distros — e.g.
+     Debian/Ubuntu need `sudo apt install python3-venv`; it also sidesteps PEP 668,
+     which blocks a plain `pip install`):
+     - macOS / Linux: `python3 -m venv ~/.mempalace/.venv && ~/.mempalace/.venv/bin/pip install mempalace`
+     - Windows: `python -m venv %USERPROFILE%\.mempalace\.venv` then `%USERPROFILE%\.mempalace\.venv\Scripts\pip.exe install mempalace`
+     - then `<MP>` = the venv `mempalace` from option 3.
+   - If neither works, tell the user to install `uv` (recommended) or `mempalace`
+     manually, then stop — do not guess further.
 
-Confirm the CLI runs before continuing:
+Confirm the resolved command runs before continuing (substitute your `<MP>`):
 
 ```
-uv run --with mempalace mempalace --version
+<MP> --version
 ```
-
-> The plugin's MCP server auto-installs mempalace on first launch, so this
-> pre-flight usually just confirms the CLI is reachable for the steps below.
 
 ## Automated Setup
 
@@ -52,18 +63,18 @@ Gather info automatically — no user input needed:
 ### Step 2: Initialize palace
 
 ```
-uv run --with mempalace mempalace init . --yes
+<MP> init . --yes
 ```
 
 `.` is the current directory (portable across Windows, macOS, and Linux); `--yes`
 auto-accepts detected entities so setup stays non-interactive. If the palace
-already exists, skip — verify with `mempalace status`.
+already exists, skip — verify with `<MP> status`.
 
 ### Step 3: Configure wings
 
 Check where the wing config lives:
 ```
-uv run --with mempalace mempalace status
+<MP> status
 ```
 
 Write/merge wing config (typically `~/.mempalace/wings.json` or inside the palace directory):
@@ -102,7 +113,7 @@ If identity.txt already exists, skip.
 Seed the palace with current project context:
 
 ```
-uv run --with mempalace mempalace mine .
+<MP> mine .
 ```
 
 Idempotent — safe to run even if already mined.
@@ -110,7 +121,7 @@ Idempotent — safe to run even if already mined.
 ### Step 6: Verify and report
 
 ```
-uv run --with mempalace mempalace status
+<MP> status
 ```
 
 Read the plugin version from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (the `version` field).
