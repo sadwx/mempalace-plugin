@@ -18,6 +18,11 @@ most portable form when uv is absent. It targets the same entry point.
           this handles PEP 668 / externally-managed Pythons (e.g. Homebrew 3.12+).
   5. Loud stderr error with install instructions.
 
+Network backends: when ``MEMPALACE_BACKEND`` is ``pgvector`` or ``qdrant``, the uv
+path (1) widens ``--with`` to also pull the backend client (``mempalace[pgvector]``
+or ``qdrant-client``). The non-uv paths (2-4) use whatever ``mempalace`` is already
+installed, so that install must include the backend client itself.
+
 Stdout is reserved for MCP JSON-RPC. All diagnostics go to stderr only.
 """
 from __future__ import annotations
@@ -105,13 +110,27 @@ def _try_install() -> str | None:
     return None
 
 
+def _uv_with_specs() -> list[str]:
+    """uv ``--with`` args, widened to pull a network backend's client when one is
+    selected via ``MEMPALACE_BACKEND``. pgvector ships an extra; qdrant has none,
+    so its client is added standalone. Defaults to plain mempalace (local chroma).
+    """
+    backend = os.environ.get("MEMPALACE_BACKEND", "").strip().lower()
+    if backend == "pgvector":
+        return ["--with", "mempalace[pgvector]"]
+    if backend == "qdrant":
+        return ["--with", "mempalace", "--with", "qdrant-client"]
+    return ["--with", "mempalace"]
+
+
 def main() -> int:
     forwarded = sys.argv[1:]
 
     if shutil.which("uv"):
         # Canonical upstream entry point; uv resolves the console script inside
-        # its managed env on every platform.
-        return _run(["uv", "run", "--with", "mempalace", "mempalace-mcp", *forwarded])
+        # its managed env on every platform. --with is widened for network
+        # backends (MEMPALACE_BACKEND=pgvector|qdrant) so their client ships too.
+        return _run(["uv", "run", *_uv_with_specs(), "mempalace-mcp", *forwarded])
 
     if _has_module(sys.executable, "mempalace"):
         return _run([sys.executable, "-m", "mempalace.mcp_server", *forwarded])
