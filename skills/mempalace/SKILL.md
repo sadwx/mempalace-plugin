@@ -135,7 +135,7 @@ Mempalace plugin v<version> — setup complete:
 - Identity: <first line>
 - Mined: <project_path>
 - MCP: auto-registered by plugin
-- Hooks: Stop + PreCompact auto-configured by plugin
+- Hooks: SessionStart + Stop + PreCompact auto-configured by plugin (via `mempalace hook run`)
 ```
 
 ## Quick Reference

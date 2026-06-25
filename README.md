@@ -8,8 +8,10 @@ Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/me
 
 **On install (automatic):**
 - MCP server auto-registers, exposing 35 mempalace tools (search, mining, drawers, knowledge graph, tunnels, agent diary, and more)
-- Stop hook auto-saves conversation context every ~15 messages
+- SessionStart hook injects wake-up context and — once, in the background — imports your existing Claude Code transcripts before Claude Code's `cleanupPeriodDays` (default 30) deletes them ([discussion #1388](https://github.com/MemPalace/mempalace/discussions/1388))
+- Stop hook auto-saves conversation context
 - PreCompact hook emergency-saves before context window compression
+- All three run mempalace's first-class hook runner (`mempalace hook run --harness claude-code`)
 
 **On `/mempalace` (per-project):**
 - Installs mempalace package if needed (detects uv/python3/python)
@@ -69,8 +71,8 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 |-----------|------|---------|
 | MCP | `.mcp.json` | Auto-registers mempalace MCP server |
 | Skill | `skills/mempalace/SKILL.md` | `/mempalace` setup command |
-| Hook | `hooks/scripts/mempal_save_hook.py` | Auto-save on Stop |
-| Hook | `hooks/scripts/mempal_precompact_hook.py` | Emergency save on PreCompact |
+| Hook | `hooks/scripts/mempal_hook.py` | Runs `mempalace hook run` for SessionStart / Stop / PreCompact |
+| Hook | `hooks/scripts/mempal_backlog_import.py` | One-time background import of existing transcripts ([#1388](https://github.com/MemPalace/mempalace/discussions/1388)) |
 | Script | `scripts/run-mcp-server.py` | Start MCP server (prefers `uv`, falls back to installed package) |
 
 ## License
