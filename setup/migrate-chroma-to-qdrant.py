@@ -71,6 +71,21 @@ def migrate_collection(src_path, dst_id, name, batch, dry_run):
     return total
 
 
+def _existing_chroma_collections(palace_path):
+    """Names of collections that actually exist in the source chroma palace, or
+    None if it can't be read (then we don't pre-filter)."""
+    import sqlite3
+    db = os.path.join(palace_path, "chroma.sqlite3")
+    try:
+        con = sqlite3.connect(db)
+        try:
+            return {r[0] for r in con.execute("SELECT name FROM collections")}
+        finally:
+            con.close()
+    except Exception:
+        return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -104,21 +119,31 @@ def main() -> int:
         print(f"ERROR: no chroma.sqlite3 under {args.chroma_palace}", file=sys.stderr)
         return 2
 
-    grand = 0
+    existing = _existing_chroma_collections(args.chroma_palace)
+    if existing is not None:
+        print(f"Source collections present: {sorted(existing)}\n")
+
+    grand, errors = 0, 0
     for name in cols:
+        if existing is not None and name not in existing:
+            print(f"{name}: not present in source palace — skipping (nothing to migrate)\n")
+            continue
         try:
             n = migrate_collection(args.chroma_palace, args.qdrant_palace_id,
                                    name, args.batch, args.dry_run)
             grand += n
             print(f"{name}: {n} total\n")
         except Exception as e:
-            print(f"{name}: ERROR — {e}\n", file=sys.stderr)
-            return 1
-    print(f"DONE. {grand} records {'counted' if args.dry_run else 'migrated into qdrant'}.")
-    if not args.dry_run:
+            print(f"{name}: ERROR — {type(e).__name__}: {e}\n", file=sys.stderr)
+            errors += 1
+
+    verb = "counted" if args.dry_run else "migrated into qdrant"
+    tail = f" ({errors} collection(s) errored.)" if errors else ""
+    print(f"DONE. {grand} records {verb}.{tail}")
+    if not args.dry_run and not errors:
         print("Re-running is safe (upsert by id). Run the same command on your other "
               "machine to merge its palace in too.")
-    return 0
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
