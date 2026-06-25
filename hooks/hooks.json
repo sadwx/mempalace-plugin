@@ -1,12 +1,29 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_hook.py session-start",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_backlog_import.py",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_save_hook.py",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_hook.py stop",
             "timeout": 30000
           }
         ]
@@ -18,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_precompact_hook.py",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_hook.py precompact",
             "timeout": 30000
           }
         ]
