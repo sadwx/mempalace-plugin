@@ -38,11 +38,30 @@ _PROJECTS = Path.home() / ".claude" / "projects"
 _LOG = _MEMPAL_DIR / "claude_imports.log"
 
 
-def _uv_with_specs() -> list[str]:
-    """uv ``--with`` args, widened to pull a network backend's client when one is
-    selected via ``MEMPALACE_BACKEND`` (pgvector ships an extra; qdrant does not).
+def _select_backend() -> str:
+    """Backend name from ``MEMPALACE_BACKEND``, else the ``backend`` key in
+    ~/.mempalace/config.json — so a config-file-only setup (no env vars) still
+    provisions the right client. Empty string if unset/unreadable.
     """
     backend = os.environ.get("MEMPALACE_BACKEND", "").strip().lower()
+    if backend:
+        return backend
+    try:
+        import json
+        cfg = Path.home() / ".mempalace" / "config.json"
+        if cfg.is_file():
+            return str(json.loads(cfg.read_text(encoding="utf-8")).get("backend", "")).strip().lower()
+    except Exception:
+        pass
+    return ""
+
+
+def _uv_with_specs() -> list[str]:
+    """uv ``--with`` args, widened to pull a network backend's client when a
+    backend is selected (via ``MEMPALACE_BACKEND`` or config.json; pgvector ships
+    an extra; qdrant does not).
+    """
+    backend = _select_backend()
     if backend == "pgvector":
         return ["--with", "mempalace[pgvector]"]
     if backend == "qdrant":
