@@ -70,6 +70,12 @@ def _uv_with_specs() -> list[str]:
 
 
 def _resolve_mempalace_argv() -> list[str] | None:
+    # For a network backend (qdrant/pgvector) prefer ``uv run`` FIRST: it pulls the
+    # required client into the run env. A bare PATH/venv ``mempalace`` may lack it,
+    # in which case ``mine`` silently writes to a LOCAL chroma palace instead of the
+    # shared backend. (mempal_hook.py / run-mcp-server.py are uv-first for this.)
+    if _select_backend() in ("qdrant", "pgvector") and shutil.which("uv"):
+        return ["uv", "run", *_uv_with_specs(), "mempalace"]
     path_cmd = shutil.which("mempalace")
     if path_cmd:
         return [path_cmd]
