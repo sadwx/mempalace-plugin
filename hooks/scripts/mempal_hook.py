@@ -10,8 +10,10 @@ runner's stdout (harness JSON — e.g. a SessionStart wake-up context payload, o
 a Stop decision) is forwarded back to Claude Code. Silent no-op if the mempalace
 CLI cannot be located. Never raises — hook failures must not block Claude Code.
 
-CLI resolution order: ``mempalace`` on PATH, then the dedicated venv at
-``~/.mempalace/.venv``, then ``uv run --with mempalace`` if uv is available.
+CLI resolution order: for a network backend (qdrant/pgvector) ``uv run`` is tried
+FIRST so the backend client is guaranteed (a PATH/venv mempalace lacking it would
+silently fall back to a local chroma palace); otherwise ``mempalace`` on PATH, then
+the dedicated venv at ``~/.mempalace/.venv``, then ``uv run --with mempalace``.
 """
 from __future__ import annotations
 
@@ -62,6 +64,13 @@ def _uv_with_specs() -> list[str]:
 
 
 def _resolve_mempalace_argv() -> list[str] | None:
+    # For a network backend (qdrant/pgvector) prefer ``uv run`` FIRST: it pulls the
+    # required client (qdrant-client / mempalace[pgvector]) into the run env. A bare
+    # PATH/venv ``mempalace`` may lack that client, in which case mempalace silently
+    # falls back to a LOCAL chroma palace and forks data away from the shared
+    # backend. (run-mcp-server.py is uv-first for the same reason.)
+    if _select_backend() in ("qdrant", "pgvector") and shutil.which("uv"):
+        return ["uv", "run", *_uv_with_specs(), "mempalace"]
     path_cmd = shutil.which("mempalace")
     if path_cmd:
         return [path_cmd]
