@@ -40,6 +40,18 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/run-python.mjs ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/mempal_hook.py session-end",
+            "timeout": 30000
+          }
+        ]
+      }
     ]
   }
 }

@@ -11,7 +11,8 @@ Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/me
 - SessionStart hook injects wake-up context and — once, in the background — imports your existing Claude Code transcripts before Claude Code's `cleanupPeriodDays` (default 30) deletes them ([discussion #1388](https://github.com/MemPalace/mempalace/discussions/1388))
 - Stop hook auto-saves conversation context
 - PreCompact hook emergency-saves before context window compression
-- All three run mempalace's first-class hook runner (`mempalace hook run --harness claude-code`)
+- SessionEnd hook runs a final mine when the session ends
+- All four run mempalace's first-class hook runner (`mempalace hook run --harness claude-code`)
 
 **On `/mempalace` (per-project):**
 - Installs mempalace package if needed (detects uv/python3/python)
@@ -34,6 +35,8 @@ claude plugin install mempalace@mempalace-plugin --scope user
 Then restart Claude Code or run `/reload-plugins`.
 
 ## Requirements
+
+> **Tested against mempalace 3.5.0** (35 MCP tools). The launcher installs the latest `mempalace` release from PyPI unpinned (`uv run --with mempalace …`), so newer versions are picked up automatically — 3.5.0 is just the release this plugin was last verified against.
 
 - **`uv` (recommended)** — install from [docs.astral.sh/uv](https://docs.astral.sh/uv/). Zero-install startup: the launcher runs `uv run --with mempalace …` and uv provisions everything, identically on Windows, macOS, and Linux. Nothing else needed.
 - **…or Python 3.10+ on `PATH`** with the `mempalace` package installed (`pip install mempalace`). The launcher detects `python3` first, then `python`, so either name works.
@@ -71,7 +74,7 @@ mempalace works automatically via MCP tools in Claude sessions. For manual use:
 |-----------|------|---------|
 | MCP | `.mcp.json` | Auto-registers mempalace MCP server |
 | Skill | `skills/mempalace/SKILL.md` | `/mempalace` setup command |
-| Hook | `hooks/scripts/mempal_hook.py` | Runs `mempalace hook run` for SessionStart / Stop / PreCompact |
+| Hook | `hooks/scripts/mempal_hook.py` | Runs `mempalace hook run` for SessionStart / Stop / SessionEnd / PreCompact |
 | Hook | `hooks/scripts/mempal_backlog_import.py` | One-time background import of existing transcripts ([#1388](https://github.com/MemPalace/mempalace/discussions/1388)) |
 | Script | `scripts/run-mcp-server.py` | Start MCP server (prefers `uv`, falls back to installed package) |
 

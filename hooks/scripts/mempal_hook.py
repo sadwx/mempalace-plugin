@@ -10,6 +10,10 @@ runner's stdout (harness JSON — e.g. a SessionStart wake-up context payload, o
 a Stop decision) is forwarded back to Claude Code. Silent no-op if the mempalace
 CLI cannot be located. Never raises — hook failures must not block Claude Code.
 
+``session-end`` is the exception: it is spawned detached and never waited on (see
+``_run_detached``), because its runner outlives its own useful work and has no
+decision to report back.
+
 CLI resolution order: for a network backend (qdrant/pgvector) ``uv run`` is tried
 FIRST so the backend client is guaranteed (a PATH/venv mempalace lacking it would
 silently fall back to a local chroma palace); otherwise ``mempalace`` on PATH, then
@@ -81,6 +85,45 @@ def _resolve_mempalace_argv() -> list[str] | None:
     return None
 
 
+def _run_detached(argv: list[str]) -> int:
+    """Fire-and-forget launch for ``session-end``, which must not be waited on.
+
+    mempalace's ``hook_session_end`` is written on the contract that its caller
+    backgrounds it: it does an in-process diary write and then spawns detached
+    mines, and the runner lingers ~20s past that useful work before exiting.
+    Waiting on it stalls session exit until the ``subprocess.run`` timeout below
+    kills the runner mid-flight. SessionEnd has no decision control, so nothing
+    is lost by dropping its stdout.
+
+    The hook JSON is handed over through a pipe rather than by inheriting stdin,
+    so the payload survives this process exiting immediately.
+    """
+    try:
+        payload = sys.stdin.buffer.read()
+    except Exception:
+        payload = b""
+    kwargs: dict = {}
+    if _IS_WIN:
+        kwargs["creationflags"] = (
+            subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+        )
+    else:
+        kwargs["start_new_session"] = True
+    try:
+        proc = subprocess.Popen(
+            argv,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            **kwargs,
+        )
+        proc.stdin.write(payload)
+        proc.stdin.close()
+    except Exception:
+        pass
+    return 0
+
+
 def main() -> int:
     if len(sys.argv) < 2 or sys.argv[1] not in _VALID_HOOKS:
         return 0
@@ -89,6 +132,8 @@ def main() -> int:
     if not argv:
         return 0
     argv += ["hook", "run", "--hook", hook, "--harness", "claude-code"]
+    if hook == "session-end":
+        return _run_detached(argv)
     try:
         # Pass stdin (the hook JSON) and stdout (harness response) straight
         # through; keep stderr quiet so it never clutters the transcript.
