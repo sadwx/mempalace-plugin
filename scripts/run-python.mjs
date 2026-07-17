@@ -7,7 +7,7 @@
  * the plugin works regardless of how Python is installed.
  *
  * Resolution order:
- *   1. uv  (runs: uv run python <args>)
+ *   1. uv  (runs: uv run --no-project python <args>)
  *   2. python3  (preferred on Unix — often missing on Windows)
  *   3. python   (preferred on Windows — often missing on modern Linux)
  */
@@ -37,7 +37,10 @@ function run(cmd, cmdArgs) {
 }
 
 if (has("uv")) {
-  run("uv", ["run", "python", ...args]);
+  // --no-project is required: hooks and the MCP server inherit the host
+  // project's cwd, so a bare `uv run` would discover that project and try to
+  // sync its .venv — failing the launch outright if that venv is unusable.
+  run("uv", ["run", "--no-project", "python", ...args]);
 } else if (has("python3")) {
   run("python3", args);
 } else if (has("python")) {

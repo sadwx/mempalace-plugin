@@ -74,14 +74,14 @@ def _resolve_mempalace_argv() -> list[str] | None:
     # falls back to a LOCAL chroma palace and forks data away from the shared
     # backend. (run-mcp-server.py is uv-first for the same reason.)
     if _select_backend() in ("qdrant", "pgvector") and shutil.which("uv"):
-        return ["uv", "run", *_uv_with_specs(), "mempalace"]
+        return ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace"]
     path_cmd = shutil.which("mempalace")
     if path_cmd:
         return [path_cmd]
     if _VENV_CMD.exists():
         return [str(_VENV_CMD)]
     if shutil.which("uv"):
-        return ["uv", "run", *_uv_with_specs(), "mempalace"]
+        return ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace"]
     return None
 
 

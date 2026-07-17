@@ -75,14 +75,14 @@ def _resolve_mempalace_argv() -> list[str] | None:
     # in which case ``mine`` silently writes to a LOCAL chroma palace instead of the
     # shared backend. (mempal_hook.py / run-mcp-server.py are uv-first for this.)
     if _select_backend() in ("qdrant", "pgvector") and shutil.which("uv"):
-        return ["uv", "run", *_uv_with_specs(), "mempalace"]
+        return ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace"]
     path_cmd = shutil.which("mempalace")
     if path_cmd:
         return [path_cmd]
     if _VENV_CMD.exists():
         return [str(_VENV_CMD)]
     if shutil.which("uv"):
-        return ["uv", "run", *_uv_with_specs(), "mempalace"]
+        return ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace"]
     return None
 
 

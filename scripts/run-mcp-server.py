@@ -2,7 +2,7 @@
 """Start the mempalace MCP server with broad environment compatibility.
 
 Resolution order (first that works wins):
-  1. ``uv run --with mempalace mempalace-mcp`` — zero-install, preferred when uv
+  1. ``uv run --no-project --with mempalace mempalace-mcp`` — zero-install, preferred when uv
      is on PATH. ``mempalace-mcp`` is upstream's canonical console entry point
      (== ``mempalace.mcp_server:main``); uv resolves it inside its managed env on
      Windows, macOS, and Linux alike.
@@ -148,7 +148,13 @@ def main() -> int:
         # Canonical upstream entry point; uv resolves the console script inside
         # its managed env on every platform. --with is widened for network
         # backends (MEMPALACE_BACKEND=pgvector|qdrant) so their client ships too.
-        return _run(["uv", "run", *_uv_with_specs(), "mempalace-mcp", *forwarded])
+        # --no-project: we inherit the host project's cwd, and without this uv
+        # discovers that project and syncs its environment before running us —
+        # which fails outright on an unusable venv, and under a fixed
+        # UV_PROJECT_ENVIRONMENT would rewrite that shared env per host project.
+        return _run(
+            ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace-mcp", *forwarded]
+        )
 
     if _has_module(sys.executable, "mempalace"):
         return _run([sys.executable, "-m", "mempalace.mcp_server", *forwarded])
