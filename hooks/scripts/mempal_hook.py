@@ -14,10 +14,11 @@ CLI cannot be located. Never raises — hook failures must not block Claude Code
 ``_run_detached``), because its runner outlives its own useful work and has no
 decision to report back.
 
-CLI resolution order: for a network backend (qdrant/pgvector) ``uv run`` is tried
-FIRST so the backend client is guaranteed (a PATH/venv mempalace lacking it would
-silently fall back to a local chroma palace); otherwise ``mempalace`` on PATH, then
-the dedicated venv at ``~/.mempalace/.venv``, then ``uv run --with mempalace``.
+CLI resolution order: for a network backend (qdrant/pgvector/milvus) ``uv run`` is
+tried FIRST so the backend client is guaranteed (a PATH/venv mempalace lacking it
+would silently fall back to a local chroma palace); otherwise ``mempalace`` on
+PATH, then the dedicated venv at ``~/.mempalace/.venv``, then ``uv run --with
+mempalace``.
 """
 from __future__ import annotations
 
@@ -56,24 +57,27 @@ def _select_backend() -> str:
 
 def _uv_with_specs() -> list[str]:
     """uv ``--with`` args, widened to pull a network backend's client when a
-    backend is selected (via ``MEMPALACE_BACKEND`` or config.json; pgvector ships
-    an extra; qdrant does not).
+    backend is selected (via ``MEMPALACE_BACKEND`` or config.json; pgvector and
+    milvus ship extras; qdrant does not).
     """
     backend = _select_backend()
     if backend == "pgvector":
         return ["--with", "mempalace[pgvector]"]
     if backend == "qdrant":
         return ["--with", "mempalace", "--with", "qdrant-client"]
+    if backend == "milvus":
+        return ["--with", "mempalace[milvus]"]
     return ["--with", "mempalace"]
 
 
 def _resolve_mempalace_argv() -> list[str] | None:
-    # For a network backend (qdrant/pgvector) prefer ``uv run`` FIRST: it pulls the
-    # required client (qdrant-client / mempalace[pgvector]) into the run env. A bare
-    # PATH/venv ``mempalace`` may lack that client, in which case mempalace silently
-    # falls back to a LOCAL chroma palace and forks data away from the shared
-    # backend. (run-mcp-server.py is uv-first for the same reason.)
-    if _select_backend() in ("qdrant", "pgvector") and shutil.which("uv"):
+    # For a network backend (qdrant/pgvector/milvus) prefer ``uv run`` FIRST: it
+    # pulls the required client (qdrant-client / mempalace[pgvector] /
+    # mempalace[milvus]) into the run env. A bare PATH/venv ``mempalace`` may lack
+    # that client, in which case mempalace silently falls back to a LOCAL chroma
+    # palace and forks data away from the shared backend. (run-mcp-server.py is
+    # uv-first for the same reason.)
+    if _select_backend() in ("qdrant", "pgvector", "milvus") and shutil.which("uv"):
         return ["uv", "run", "--no-project", *_uv_with_specs(), "mempalace"]
     path_cmd = shutil.which("mempalace")
     if path_cmd:
