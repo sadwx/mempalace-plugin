@@ -18,10 +18,11 @@ most portable form when uv is absent. It targets the same entry point.
           this handles PEP 668 / externally-managed Pythons (e.g. Homebrew 3.12+).
   5. Loud stderr error with install instructions.
 
-Network backends: when ``MEMPALACE_BACKEND`` is ``pgvector`` or ``qdrant``, the uv
-path (1) widens ``--with`` to also pull the backend client (``mempalace[pgvector]``
-or ``qdrant-client``). The non-uv paths (2-4) use whatever ``mempalace`` is already
-installed, so that install must include the backend client itself.
+Network backends: when ``MEMPALACE_BACKEND`` is ``pgvector``, ``qdrant``, or
+``milvus``, the uv path (1) widens ``--with`` to also pull the backend client
+(``mempalace[pgvector]``, ``qdrant-client``, or ``mempalace[milvus]``). The
+non-uv paths (2-4) use whatever ``mempalace`` is already installed, so that
+install must include the backend client itself.
 
 Stdout is reserved for MCP JSON-RPC. All diagnostics go to stderr only.
 """
@@ -130,14 +131,16 @@ def _select_backend() -> str:
 
 def _uv_with_specs() -> list[str]:
     """uv ``--with`` args, widened to pull a network backend's client when a
-    backend is selected (via ``MEMPALACE_BACKEND`` or config.json). pgvector ships
-    an extra; qdrant has none, so its client is added standalone.
+    backend is selected (via ``MEMPALACE_BACKEND`` or config.json). pgvector and
+    milvus ship extras; qdrant has none, so its client is added standalone.
     """
     backend = _select_backend()
     if backend == "pgvector":
         return ["--with", "mempalace[pgvector]"]
     if backend == "qdrant":
         return ["--with", "mempalace", "--with", "qdrant-client"]
+    if backend == "milvus":
+        return ["--with", "mempalace[milvus]"]
     return ["--with", "mempalace"]
 
 
@@ -147,7 +150,7 @@ def main() -> int:
     if shutil.which("uv"):
         # Canonical upstream entry point; uv resolves the console script inside
         # its managed env on every platform. --with is widened for network
-        # backends (MEMPALACE_BACKEND=pgvector|qdrant) so their client ships too.
+        # backends (MEMPALACE_BACKEND=pgvector|qdrant|milvus) so their client ships too.
         # --no-project: we inherit the host project's cwd, and without this uv
         # discovers that project and syncs its environment before running us —
         # which fails outright on an unusable venv, and under a fixed

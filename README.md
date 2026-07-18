@@ -8,7 +8,7 @@ Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/me
 ## What it does
 
 **On install (automatic):**
-- MCP server auto-registers, exposing 35 mempalace tools (search, mining, drawers, knowledge graph, tunnels, agent diary, and more)
+- MCP server auto-registers, exposing 36 mempalace tools (search, mining, drawers, knowledge graph, tunnels, agent diary, and more)
 - SessionStart hook injects wake-up context and — once, in the background — imports your existing Claude Code transcripts before Claude Code's `cleanupPeriodDays` (default 30) deletes them ([discussion #1388](https://github.com/MemPalace/mempalace/discussions/1388))
 - Stop hook auto-saves conversation context
 - PreCompact hook emergency-saves before context window compression
@@ -37,7 +37,7 @@ Then restart Claude Code or run `/reload-plugins`.
 
 ## Requirements
 
-> **Tested against mempalace 3.5.0** (35 MCP tools). The launcher installs the latest `mempalace` release from PyPI unpinned (`uv run --with mempalace …`), so newer versions are picked up automatically — 3.5.0 is just the release this plugin was last verified against.
+> **Tested against mempalace 3.6.0** (36 MCP tools). The launcher installs the latest `mempalace` release from PyPI unpinned (`uv run --with mempalace …`), so newer versions are picked up automatically — 3.6.0 is just the release this plugin was last verified against.
 
 - **`uv` (recommended)** — install from [docs.astral.sh/uv](https://docs.astral.sh/uv/). Zero-install startup: the launcher runs `uv run --with mempalace …` and uv provisions everything, identically on Windows, macOS, and Linux. Nothing else needed.
 - **…or Python 3.10+ on `PATH`** with the `mempalace` package installed (`pip install mempalace`). The launcher detects `python3` first, then `python`, so either name works.
