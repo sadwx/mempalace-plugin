@@ -89,6 +89,33 @@ def _resolve_mempalace_argv() -> list[str] | None:
     return None
 
 
+def _win_detach_flags() -> int:
+    """Windows creation flags for a fire-and-forget child that shows no window.
+
+    ``CREATE_NO_WINDOW``, not ``DETACHED_PROCESS``: the latter leaves the child
+    with no console at all, so a console-subsystem grandchild (``uv`` ->
+    ``python`` -> ``mempalace``) allocates a fresh *visible* console window at
+    every hook fire. ``CREATE_NO_WINDOW`` gives a hidden console that
+    descendants inherit instead. The two are mutually exclusive — the former is
+    ignored when OR'd with the latter — so this replaces it rather than adding
+    to it. This mirrors mempalace's own ``daemon._detached_kwargs`` /
+    ``hooks_cli._detached_popen_kwargs`` (mempalace #1783).
+
+    Outliving this short-lived hook is carried by ``CREATE_BREAKAWAY_FROM_JOB``
+    (escapes a parent Job Object's kill-on-close) plus never sharing the
+    parent's console — not by the console flag — while
+    ``CREATE_NEW_PROCESS_GROUP`` isolates Ctrl-C/Ctrl-Break routing.
+    """
+    flags = 0
+    for name in (
+        "CREATE_NO_WINDOW",
+        "CREATE_NEW_PROCESS_GROUP",
+        "CREATE_BREAKAWAY_FROM_JOB",
+    ):
+        flags |= getattr(subprocess, name, 0)
+    return flags
+
+
 def _run_detached(argv: list[str]) -> int:
     """Fire-and-forget launch for ``session-end``, which must not be waited on.
 
@@ -108,9 +135,7 @@ def _run_detached(argv: list[str]) -> int:
         payload = b""
     kwargs: dict = {}
     if _IS_WIN:
-        kwargs["creationflags"] = (
-            subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-        )
+        kwargs["creationflags"] = _win_detach_flags()
     else:
         kwargs["start_new_session"] = True
     try:
