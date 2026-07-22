@@ -89,6 +89,26 @@ def _resolve_mempalace_argv() -> list[str] | None:
     return None
 
 
+def _win_detach_flags() -> int:
+    """Windows creation flags for a fire-and-forget child that shows no window.
+
+    ``CREATE_NO_WINDOW``, not ``DETACHED_PROCESS``: the latter leaves the child
+    with no console at all, so a console-subsystem grandchild (``uv`` ->
+    ``python`` -> ``mempalace``) allocates a fresh *visible* console window.
+    ``CREATE_NO_WINDOW`` gives a hidden console that descendants inherit; the
+    two are mutually exclusive, so it replaces rather than joins that flag.
+    See ``mempal_hook._win_detach_flags`` and mempalace #1783.
+    """
+    flags = 0
+    for name in (
+        "CREATE_NO_WINDOW",
+        "CREATE_NEW_PROCESS_GROUP",
+        "CREATE_BREAKAWAY_FROM_JOB",
+    ):
+        flags |= getattr(subprocess, name, 0)
+    return flags
+
+
 def main() -> int:
     if _SENTINEL.exists():
         return 0
@@ -102,10 +122,7 @@ def main() -> int:
     # Detach so the (potentially long) mine outlives this short-lived hook and
     # never blocks session start.
     if _IS_WIN:
-        detach = {
-            "creationflags": subprocess.DETACHED_PROCESS
-            | subprocess.CREATE_NEW_PROCESS_GROUP
-        }
+        detach = {"creationflags": _win_detach_flags()}
     else:
         detach = {"start_new_session": True}
 
