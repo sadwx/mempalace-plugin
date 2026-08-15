@@ -1,7 +1,7 @@
 # mempalace plugin for Claude Code
 
 ![version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsadwx%2Fmempalace-plugin%2Fmaster%2F.claude-plugin%2Fplugin.json&query=%24.version&label=version)
-![mempalace](https://img.shields.io/badge/mempalace-3.7.0%20tested-blue)
+![mempalace](https://img.shields.io/badge/mempalace-3.7.1%20tested-blue)
 
 Zero-effort setup and integration of [mempalace](https://github.com/MemPalace/mempalace) — a local AI memory system (ChromaDB + SQLite) — into Claude Code.
 
@@ -37,7 +37,7 @@ Then restart Claude Code or run `/reload-plugins`.
 
 ## Requirements
 
-> **Tested against mempalace 3.7.0** (44 MCP tools). The launcher installs the latest `mempalace` release from PyPI unpinned (`uv run --with mempalace …`), so newer versions are picked up automatically — 3.7.0 is just the release this plugin was last verified against.
+> **Tested against mempalace 3.7.1** (44 MCP tools). The launcher installs the latest `mempalace` release from PyPI unpinned (`uv run --with mempalace …`), so newer versions are picked up automatically — 3.7.1 is just the release this plugin was last verified against.
 
 - **`uv` (recommended)** — install from [docs.astral.sh/uv](https://docs.astral.sh/uv/). Zero-install startup: the launcher runs `uv run --with mempalace …` and uv provisions everything, identically on Windows, macOS, and Linux. Nothing else needed.
 - **…or Python 3.10+ on `PATH`** with the `mempalace` package installed (`pip install mempalace`). The launcher detects `python3` first, then `python`, so either name works.
